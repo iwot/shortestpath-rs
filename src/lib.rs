@@ -9,11 +9,13 @@ pub struct Node {
     edges: Vec<Edge>,
     costed: i32,
     prev: Option<GraphIndex>,
+    path: Option<Edge>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Edge {
     next: GraphIndex,
+    name: String,
     cost: i32,
 }
 
@@ -27,13 +29,14 @@ pub fn new_graph() -> Graph {
 }
 
 impl Graph {
-    pub fn add<'a>(&mut self, src: &'a str, dst: &'a str, cost: i32) {
+    pub fn add<'a>(&mut self, src: &'a str, dst: &'a str, cost: i32, edge_name: &'a str) {
         self.nodes.entry(dst.to_string()).or_insert(Node {
             name: dst.to_string(),
             done: false,
             edges: vec![],
             costed: -1,
             prev: Some(src.to_string()),
+            path: None,
         });
 
         let node = self.nodes.entry(src.to_string()).or_insert(Node {
@@ -42,9 +45,10 @@ impl Graph {
             edges: vec![],
             costed: -1,
             prev: None,
+            path: None,
         });
 
-        let edge = Edge{next:dst.to_string(), cost: cost};
+        let edge = Edge{next:dst.to_string(), name: edge_name.to_string(), cost: cost};
         node.edges.push(edge);
     }
 
@@ -80,10 +84,11 @@ impl Graph {
         }
     }
 
-    pub fn update_node_edge<'a>(&mut self, next_node_name: &'a str, cost: i32, done_node_name: &'a str) {
+    pub fn update_node_edge<'a>(&mut self, next_node_name: &'a str, cost: i32, done_node_name: &'a str, path: Edge) {
         if let Some(node) = self.nodes.get_mut(next_node_name) {
             node.costed = cost;
             node.prev = Some(done_node_name.to_string());
+            node.path = Some(path);
         }
     }
 
@@ -119,6 +124,7 @@ impl Graph {
                 let done_node_name = done_node.unwrap();
 
                 for edge in self.node_edges(&done_node_name.clone()) {
+                    let path = edge.clone();
                     let next_node = edge.next;
 
                     if self.is_done_node(next_node.as_ref()) {
@@ -128,7 +134,7 @@ impl Graph {
                     let new_cost = self.node_costed(&done_node_name.clone()) + edge.cost;
                     let next_node_costed = self.node_costed(&next_node.clone());
                     if next_node_costed == -1 || new_cost < next_node_costed {
-                        self.update_node_edge(&next_node, new_cost, &done_node_name);
+                        self.update_node_edge(&next_node, new_cost, &done_node_name, path);
                     }
                 }
 
@@ -143,8 +149,14 @@ impl Graph {
             let mut node_name = goal.to_string();
             loop {
                 if let Some(node) = self.nodes.get(&node_name) {
+                    let path_name = if let Some(ref path) = node.path {
+                        Some(path.name.clone())
+                    } else {
+                        None
+                    };
                     result_nodes.push(ShortestPathNode{
                         name: node.name.clone(),
+                        path: path_name,
                         piled_cost: self.node_costed(&node.name.clone()),
                     });
                     if node.name == start {
@@ -173,6 +185,7 @@ pub struct ShortestPath {
 #[derive(Debug)]
 pub struct ShortestPathNode {
     name: String,
+    path: Option<String>,
     piled_cost: i32,
 }
 
@@ -180,6 +193,9 @@ impl ShortestPath {
     pub fn get_path_string<'a>(&self, connector: &'a str) -> String {
         let mut stock = vec![];
         for s in &self.nodes {
+            if let Some(ref path_name) = s.path {
+                stock.push(format!("(({}))", path_name));
+            }
             stock.push(s.name.clone());
         }
         stock.join(connector)
@@ -197,18 +213,18 @@ mod tests {
     #[test]
     fn it_works() {
         let mut g = new_graph();
-        g.add("s", "a", 2);
-        g.add("s", "b", 5);
-        g.add("a", "b", 2);
-        g.add("a", "c", 5);
-        g.add("b", "c", 4);
-        g.add("b", "d", 2);
-        g.add("c", "z", 7);
-        g.add("d", "c", 5);
-        g.add("d", "z", 2);
+        g.add("s", "a", 2, "1");
+        g.add("s", "b", 5, "2");
+        g.add("a", "b", 2, "3");
+        g.add("a", "c", 5, "4");
+        g.add("b", "c", 4, "5");
+        g.add("b", "d", 2, "6");
+        g.add("c", "z", 7, "7");
+        g.add("d", "c", 5, "8");
+        g.add("d", "z", 2, "9");
         let result = g.shortest_path("s", "z");
 
         assert_eq!(8, result.cost());
-        assert_eq!("s->a->b->d->z", result.get_path_string("->"));
+        assert_eq!("s->((1))->a->((3))->b->((6))->d->((9))->z", result.get_path_string("->"));
     }
 }
