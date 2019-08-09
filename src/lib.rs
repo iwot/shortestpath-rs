@@ -190,7 +190,15 @@ pub struct ShortestPathNode {
 }
 
 impl ShortestPath {
-    pub fn get_path_string<'a>(&self, connector: &'a str) -> String {
+    pub fn get_node_path_string<'a>(&self, connector: &'a str) -> String {
+        let mut stock = vec![];
+        for s in &self.nodes {
+            stock.push(s.name.clone());
+        }
+        stock.join(connector)
+    }
+
+    pub fn get_node_edge_path_string<'a>(&self, connector: &'a str) -> String {
         let mut stock = vec![];
         for s in &self.nodes {
             if let Some(ref path_name) = s.path {
@@ -213,18 +221,19 @@ mod tests {
     #[test]
     fn it_works() {
         let mut g = new_graph();
-        g.add("s", "a", 2, "1");
-        g.add("s", "b", 5, "2");
-        g.add("a", "b", 2, "3");
-        g.add("a", "c", 5, "4");
-        g.add("b", "c", 4, "5");
-        g.add("b", "d", 2, "6");
-        g.add("c", "z", 7, "7");
-        g.add("d", "c", 5, "8");
-        g.add("d", "z", 2, "9");
+        g.add("s", "a", 2, "edge1");
+        g.add("s", "b", 5, "edge2");
+        g.add("a", "b", 2, "edge3");
+        g.add("a", "c", 5, "edge4");
+        g.add("b", "c", 4, "edge5");
+        g.add("b", "d", 2, "edge6");
+        g.add("c", "z", 7, "edge7");
+        g.add("d", "c", 5, "edge8");
+        g.add("d", "z", 2, "edge9");
         let result = g.shortest_path("s", "z");
 
         assert_eq!(8, result.cost());
-        assert_eq!("s->((1))->a->((3))->b->((6))->d->((9))->z", result.get_path_string("->"));
+        assert_eq!("s->a->b->d->z", result.get_node_path_string("->"));
+        assert_eq!("s->((edge1))->a->((edge3))->b->((edge6))->d->((edge9))->z", result.get_node_edge_path_string("->"));
     }
 }
