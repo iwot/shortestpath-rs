@@ -1,5 +1,5 @@
 [package]
-name = "dijkstra"
+name = "shortestpath"
 version = "0.1.0"
 authors = ["iwot <iwmt@outlook.com>"]
 edition = "2018"

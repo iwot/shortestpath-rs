@@ -1,6 +1,6 @@
-//! # ダイクストラ
+//! # 最短経路探索
 //! 
-//! `dijkstra`は、最短経路探索を行うためのライブラリです。
+//! `shortestpath`は、最短経路探索を行うためのライブラリです。
 use std::collections::HashMap;
 
 pub type GraphIndex = String;
