@@ -37,6 +37,7 @@ impl Graph {
     /// #Examples
     /// 
     /// ```
+    /// use shortestpath::new_graph;
     /// let mut g = new_graph();
     /// 
     /// g.add("s", "a", 2, "edge1");
@@ -115,6 +116,7 @@ impl Graph {
     /// # Examples
     /// 
     /// ```
+    /// use shortestpath::new_graph;
     /// let mut g = new_graph();
     /// g.add("s", "a", 2, "edge1");
     /// g.add("s", "b", 5, "edge2");
@@ -252,7 +254,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
+    fn new_graph_success() {
         let mut g = new_graph();
         g.add("s", "a", 2, "edge1");
         g.add("s", "b", 5, "edge2");
